@@ -18,7 +18,8 @@ public class PaymentController {
 
 	@PostMapping("/payment")
 	public ResponseEntity<Payment> processPayment(@RequestBody Payment payment) {
-
+		
+		System.out.println(payment);
 		Payment status = paymentService.addPaymentDetails(payment);
 		if (status != null) {
 			return new ResponseEntity<Payment>(status, HttpStatus.ACCEPTED);
