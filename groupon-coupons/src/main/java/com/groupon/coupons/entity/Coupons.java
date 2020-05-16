@@ -1,10 +1,11 @@
 package com.groupon.coupons.entity;
 
+import java.io.File;
+
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document
 public class Coupons {
-
 	private long couponId;
 	private String couponName;
 	private String couponDescription;

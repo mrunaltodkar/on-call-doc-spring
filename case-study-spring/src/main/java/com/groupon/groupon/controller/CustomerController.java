@@ -28,7 +28,7 @@ public class CustomerController {
 	@Autowired
 	private RestTemplate restTemplate;
 
-	private String email;
+	private String email = "";
 
 	@PostMapping("/signup")
 	public ResponseEntity<Customer> signUpDetailsOfCustomer(@RequestBody Customer customer) {
