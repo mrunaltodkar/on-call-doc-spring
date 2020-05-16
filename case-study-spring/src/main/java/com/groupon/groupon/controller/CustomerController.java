@@ -3,6 +3,8 @@ package com.groupon.groupon.controller;
 import java.util.ArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
+import com.groupon.groupon.entity.CardDetails;
 import com.groupon.groupon.entity.Coupons;
 import com.groupon.groupon.entity.Customer;
 import com.groupon.groupon.entity.Payment;
@@ -33,7 +36,22 @@ public class CustomerController {
 	@PostMapping("/signup")
 	public ResponseEntity<Customer> signUpDetailsOfCustomer(@RequestBody Customer customer) {
 
-		Customer status = customerService.addCustomerDeatils(customer);
+		Customer customerFind = customerService.findByEmail(customer.getEmail());
+		if (customerFind != null) {
+			return new ResponseEntity<Customer>(HttpStatus.CONFLICT);
+		}
+
+		Whishlist whishlist = new Whishlist();
+
+		Payment payment = new Payment();
+		CardDetails cardDetails = new CardDetails();
+		payment.setCardDetails(cardDetails);
+
+		Coupons coupons = new Coupons();
+		whishlist.setCoupons(coupons);
+		customer.setPayment(payment);
+		customer.setWhishlist(whishlist);
+		Customer status = customerService.addCustomerDetails(customer);
 
 		return new ResponseEntity<Customer>(status, HttpStatus.CREATED);
 
@@ -51,7 +69,6 @@ public class CustomerController {
 		if ((customer.getEmail().equals(email) && (customer.getPassword().equals(password)))) {
 
 			this.email = email;
-			System.out.println(this.email);
 
 			return new ResponseEntity<Customer>(customer, HttpStatus.OK);
 		}
@@ -85,18 +102,58 @@ public class CustomerController {
 
 	@PostMapping("/payment")
 	public ResponseEntity<Payment> payment(@RequestBody Payment payment) {
-		System.out.println(this.email);
-		Customer customer = customerService.findByEmail(this.email);
-		/*
-		 * Payment payment1 =
-		 * restTemplate.getForEntity("http://groupon-payment/payment", Payment.class,
-		 * payment) .getBody();
-		 */
 
-		Payment payment1 = restTemplate.postForObject("http://groupon-payment/payment", payment, Payment.class);
+		Customer customer = customerService.findByEmail(this.email);
+		System.out.println(this.email);
+		System.out.println(customer.getPayment().getCardDetails().getCardHolderName());
+
+		HttpEntity<Payment> requestEntity = new HttpEntity<Payment>(payment);
+
+		Payment payment1 = restTemplate
+				.exchange("http://groupon-payment/payment", HttpMethod.POST, requestEntity, Payment.class).getBody();
+
 		customer.setPayment(payment1);
-		return new ResponseEntity<Payment>(payment1, HttpStatus.CONTINUE);
+		if (customerService.deleteCustomerDetails(this.email)) {
+			customerService.addCustomerDetails(customer);
+			System.out.println("deleted");
+		}
+
+		return new ResponseEntity<Payment>(payment1, HttpStatus.CREATED);
 
 	}
+
+	/*
+	 * @PostMapping("/payment") public ResponseEntity<Payment> payment1(@RequestBody
+	 * Payment payment) {
+	 * 
+	 * Customer customer = customerService.findByEmail(this.email);
+	 * System.out.println(this.email);
+	 * System.out.println(customer.getPayment().getCardDetails().getCardHolderName()
+	 * );
+	 * 
+	 * HttpEntity<Payment> requestEntity = new HttpEntity<Payment>(payment);
+	 * 
+	 * Payment payment1 = restTemplate .exchange("http://groupon-payment/payment",
+	 * HttpMethod.POST, requestEntity, Payment.class).getBody();
+	 * 
+	 * System.out.println(payment1.getCardDetails().getCardHolderName());
+	 * 
+	 * CardDetails cardDetails = new CardDetails();
+	 * cardDetails.setCardHolderName(payment1.getCardDetails().getCardHolderName());
+	 * cardDetails.setCardName(payment1.getCardDetails().getCardName());
+	 * cardDetails.setCvv(payment1.getCardDetails().getCvv());
+	 * cardDetails.setExpiryDate(payment1.getCardDetails().getExpiryDate());
+	 * 
+	 * Payment payment2 = new Payment(); payment2.setAddress(payment1.getAddress());
+	 * payment2.setEmail(payment1.getEmail());
+	 * payment2.setCashOnDelivery(payment.getCashOnDelivery());
+	 * 
+	 * payment2.setCardDetails(cardDetails); customer.setPayment(payment2);
+	 * customerService.addCustomerDetails(customer);
+	 * 
+	 * return new ResponseEntity<Payment>(payment1, HttpStatus.CREATED);
+	 * 
+	 * }
+	 */
 
 }

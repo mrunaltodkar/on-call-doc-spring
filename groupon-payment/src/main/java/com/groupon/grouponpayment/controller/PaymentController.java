@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.client.RestTemplate;
 
 import com.groupon.grouponpayment.entity.Payment;
 import com.groupon.grouponpayment.service.PaymentService;
@@ -15,13 +16,17 @@ public class PaymentController {
 
 	@Autowired
 	private PaymentService paymentService;
+	
+	
 
 	@PostMapping("/payment")
 	public ResponseEntity<Payment> processPayment(@RequestBody Payment payment) {
 		
 		System.out.println(payment);
 		Payment status = paymentService.addPaymentDetails(payment);
+		
 		if (status != null) {
+			System.out.println(status);
 			return new ResponseEntity<Payment>(status, HttpStatus.ACCEPTED);
 		}
 		return new ResponseEntity<Payment>(HttpStatus.NO_CONTENT);

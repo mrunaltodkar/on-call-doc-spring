@@ -9,4 +9,5 @@ import com.groupon.groupon.entity.Customer;
 public interface CustomerRepository extends MongoRepository<Customer, String> {
 
 	Customer findByEmail(String email);
+	boolean deleteByEmail(String email);
 }

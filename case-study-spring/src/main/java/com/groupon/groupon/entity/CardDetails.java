@@ -1,5 +1,8 @@
 package com.groupon.groupon.entity;
 
+import org.springframework.data.mongodb.core.mapping.Document;
+
+@Document
 public class CardDetails {
 	
 	private String cardHolderName;

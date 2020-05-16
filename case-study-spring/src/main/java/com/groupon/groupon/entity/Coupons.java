@@ -2,7 +2,6 @@ package com.groupon.groupon.entity;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document
 public class Coupons {
 
 	private long couponId;
