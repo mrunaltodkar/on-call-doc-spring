@@ -26,10 +26,9 @@ public class CustomerServiceImpl implements CustomerService {
 		return customerRepository.findByEmail(email);
 	}
 
-	@Override
-	public boolean deleteCustomerDetails(String email) {
-		return customerRepository.deleteByEmail(email);
+	
 
-	}
+	
+	
 
 }

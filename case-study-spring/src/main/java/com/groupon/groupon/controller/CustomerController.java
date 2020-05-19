@@ -2,7 +2,13 @@ package com.groupon.groupon.controller;
 
 import java.util.ArrayList;
 
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoOperations;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.CriteriaDefinition;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -20,6 +26,10 @@ import com.groupon.groupon.entity.Customer;
 import com.groupon.groupon.entity.Payment;
 import com.groupon.groupon.entity.Whishlist;
 import com.groupon.groupon.service.CustomerService;
+import com.mongodb.BasicDBObject;
+import com.mongodb.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import com.sun.xml.bind.v2.schemagen.xmlschema.List;
 
 @RestController
@@ -30,6 +40,9 @@ public class CustomerController {
 
 	@Autowired
 	private RestTemplate restTemplate;
+
+	@Autowired
+	private MongoOperations mongoOperations;
 
 	private String email = "";
 
@@ -101,7 +114,7 @@ public class CustomerController {
 	}
 
 	@PostMapping("/payment")
-	public ResponseEntity<Payment> payment(@RequestBody Payment payment) {
+	public ResponseEntity<Payment> payment(@RequestBody Payment payment) throws Exception {
 
 		Customer customer = customerService.findByEmail(this.email);
 		System.out.println(this.email);
@@ -113,12 +126,32 @@ public class CustomerController {
 				.exchange("http://groupon-payment/payment", HttpMethod.POST, requestEntity, Payment.class).getBody();
 
 		customer.setPayment(payment1);
-		if (customerService.deleteCustomerDetails(this.email)) {
-			customerService.addCustomerDetails(customer);
-			System.out.println("deleted");
-		}
+		System.out.println("here");
+		
+		MongoClient client = new MongoClient( "localhost" , 27017 );
+		MongoDatabase db = client.getDatabase("coupons");
+		MongoCollection<Document> collection = db.getCollection("customer");
+		
+		collection.deleteOne(new Document("email",this.email));
+		
+		
+		/*
+		 * BasicDBObject query = new BasicDBObject();
+		 * 
+		 * mongoOperations.updateMulti(new
+		 * Query(Criteria.where("email").is(this.email)), Update.update("payment",
+		 * payment1), Payment.class);
+		 */
+		
+		/*
+		 * mongoOperations.updateFirst(new
+		 * Query(Criteria.where("email").is(this.email)), Update.update("payment",
+		 * payment1), Payment.class);
+		 */
 
-		return new ResponseEntity<Payment>(payment1, HttpStatus.CREATED);
+		customerService.addCustomerDetails(customer);
+
+		return new ResponseEntity<Payment>(payment1, HttpStatus.OK);
 
 	}
 
