@@ -13,6 +13,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,6 +33,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.sun.xml.bind.v2.schemagen.xmlschema.List;
 
+@CrossOrigin("*")
 @RestController
 public class CustomerController {
 
@@ -48,6 +50,7 @@ public class CustomerController {
 
 	@PostMapping("/signup")
 	public ResponseEntity<Customer> signUpDetailsOfCustomer(@RequestBody Customer customer) {
+		System.out.println(customer.getEmail());
 
 		Customer customerFind = customerService.findByEmail(customer.getEmail());
 		if (customerFind != null) {
@@ -70,16 +73,17 @@ public class CustomerController {
 
 	}
 
-	@GetMapping("/signin/{email}/{password}")
-	public ResponseEntity<Customer> logInDetailsForUser(@PathVariable String email, @PathVariable String password) {
+	@PostMapping("/signin")
+	public ResponseEntity<Customer> logInDetailsForUser(@RequestBody Customer customerui) {
 
-		Customer customer = customerService.findByEmail(email);
+		Customer customer = customerService.findByEmail(customerui.getEmail());
 
 		if (customer == null) {
 			return new ResponseEntity<Customer>(customer, HttpStatus.NOT_FOUND);
 
 		}
-		if ((customer.getEmail().equals(email) && (customer.getPassword().equals(password)))) {
+		if ((customer.getEmail().equals(customerui.getEmail())
+				&& (customer.getPassword().equals(customerui.getPassword())))) {
 
 			this.email = email;
 
@@ -113,48 +117,34 @@ public class CustomerController {
 
 	}
 
-	@PostMapping("/payment")
-	public ResponseEntity<Payment> payment(@RequestBody Payment payment) throws Exception {
-
-		Customer customer = customerService.findByEmail(this.email);
-		System.out.println(this.email);
-		System.out.println(customer.getPayment().getCardDetails().getCardHolderName());
-
-		HttpEntity<Payment> requestEntity = new HttpEntity<Payment>(payment);
-
-		Payment payment1 = restTemplate
-				.exchange("http://groupon-payment/payment", HttpMethod.POST, requestEntity, Payment.class).getBody();
-
-		customer.setPayment(payment1);
-		System.out.println("here");
-		
-		MongoClient client = new MongoClient( "localhost" , 27017 );
-		MongoDatabase db = client.getDatabase("coupons");
-		MongoCollection<Document> collection = db.getCollection("customer");
-		
-		collection.deleteOne(new Document("email",this.email));
-		
-		
-		/*
-		 * BasicDBObject query = new BasicDBObject();
-		 * 
-		 * mongoOperations.updateMulti(new
-		 * Query(Criteria.where("email").is(this.email)), Update.update("payment",
-		 * payment1), Payment.class);
-		 */
-		
-		/*
-		 * mongoOperations.updateFirst(new
-		 * Query(Criteria.where("email").is(this.email)), Update.update("payment",
-		 * payment1), Payment.class);
-		 */
-
-		customerService.addCustomerDetails(customer);
-
-		return new ResponseEntity<Payment>(payment1, HttpStatus.OK);
-
-	}
-
+	/*
+	 * @PostMapping("/payment") public ResponseEntity<Payment> payment(@RequestBody
+	 * Payment payment) throws Exception {
+	 * 
+	 * Customer customer = customerService.findByEmail(this.email);
+	 * System.out.println(this.email);
+	 * System.out.println(customer.getPayment().getCardDetails().getCardHolderName()
+	 * );
+	 * 
+	 * HttpEntity<Payment> requestEntity = new HttpEntity<Payment>(payment);
+	 * 
+	 * Payment payment1 = restTemplate .exchange("http://groupon-payment/payment",
+	 * HttpMethod.POST, requestEntity, Payment.class).getBody();
+	 * 
+	 * customer.setPayment(payment1); System.out.println("here");
+	 * 
+	 * MongoClient client = new MongoClient("localhost", 27017); MongoDatabase db =
+	 * client.getDatabase("coupons"); MongoCollection<Document> collection =
+	 * db.getCollection("customer");
+	 * 
+	 * collection.deleteOne(new Document("email", this.email));
+	 * 
+	 * customerService.addCustomerDetails(customer);
+	 * 
+	 * return new ResponseEntity<Payment>(payment1, HttpStatus.OK);
+	 * 
+	 * }
+	 */
 	/*
 	 * @PostMapping("/payment") public ResponseEntity<Payment> payment1(@RequestBody
 	 * Payment payment) {

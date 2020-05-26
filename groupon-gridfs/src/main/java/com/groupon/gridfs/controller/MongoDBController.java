@@ -59,8 +59,9 @@ public class MongoDBController {
 		System.out.println("hitting");
 
 		GridFSDBFile dbFile = gridFsOperations.findOne(new Query(Criteria.where("metadata.couponId").is(couponId)));
+		DBObject dbObject=dbFile.getMetaData();
 		InputStreamResource inputStreamResource = new InputStreamResource(dbFile.getInputStream());
-		return new ResponseEntity(inputStreamResource, HttpStatus.FOUND);
+		return new ResponseEntity(dbObject, HttpStatus.FOUND);
 
 	}
 
@@ -112,6 +113,10 @@ public class MongoDBController {
 		// return null;
 		return new ResponseEntity<Coupon>(HttpStatus.CREATED);
 	}
+	
+	
+	
+
 
 	/*
 	 * @GetMapping("/allcoupons") public ResponseEntity<List<InputStreamResource>>
