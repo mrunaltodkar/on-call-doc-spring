@@ -1,5 +1,7 @@
 package com.groupon.grouponpayment.service.impl;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,15 +16,24 @@ public class PaymentServiceImpl implements PaymentService {
 
 	@Override
 	public Payment addPaymentDetails(Payment payment) {
-		// TODO Auto-generated method stub
 		return paymentRepository.save(payment);
 	}
 
 	@Override
 	public Payment findByEmail(String payment) {
-		// TODO Auto-generated method stub
+
 		return paymentRepository.findByEmail(payment);
 	}
 
+	@Override
+	public List<Payment> findALLPaymentDetails(String email) {
+
+		return paymentRepository.findAll();
+	}
+
+	@Override
+	public Payment updatePayementDetails(Payment payment) {
+		return paymentRepository.save(payment);
+	}
 
 }
